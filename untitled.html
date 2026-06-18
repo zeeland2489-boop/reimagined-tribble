@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Work Entry System</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f9f9f9;
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        /* สไตล์สำหรับโซนปุ่มหน้าแรก */
+        .nav-home {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        .btn-nav {
+            background-color: #5C6AC4;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            font-size: 16px;
+            margin: 5px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .btn-nav:hover {
+            background-color: #4a56a0;
+        }
+        .title {
+            color: #5C6AC4;
+        }
+        .task {
+            margin: 10px 0;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        input[type="text"], textarea, select {
+            width: 100%;
+            padding: 10px;
+            margin: 8px 0;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            padding: 10px 15px;
+            cursor: pointer;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            background-color: #f0f0f0;
+        }
+        button:hover {
+            background-color: #e0e0e0;
+        }
+        #adminPanel, #chatPanel {
+            border-top: 2px solid #5C6AC4;
+            padding-top: 10px;
+            margin-top: 20px;
+        }
+        .chat-messages {
+            height: 200px;
+            overflow-y: scroll;
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin-bottom: 10px;
+            background: #fafafa;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="homeNavigation" class="container nav-home">
+        <h2> ✨️ ยินดีต้อนรับ ✨️ (Welcome)</h2>
+        <p>กรุณาเลือกบริการที่ต้องการด้านล่าง:</p>
+        <button class="btn-nav" onclick="showForm('login')">🔑 เข้าสู่ระบบพนักงาน (Login)</button>
+        <button class="btn-nav" onclick="showForm('publicComplaint')">📢 แจ้งเรื่องร้องเรียน (Complaint)</button>
+    </div>
+
+    <div id="login" class="container" style="display: block;">
+        <h1>Login</h1>
+        <input type="text" id="userId" placeholder="Enter ID (ป้อนI หลัก)" />
+        <button onclick="login()" style="background-color: #5C6AC4; color: white;">Login</button>
+        <p id="loginError" style="color: red;"></p>
+    </div>
+
+    <div id="publicComplaint" class="container" style="display: none;">
+        <h1>Public Complaint</h1>
+        <p>For general public: Submit a complaint to a department.</p>
+        <select id="departmentSelect">
+            <option value="@1">กองงาน1 @1</option>
+            <option value="@2">B1 @2</option>
+            <option value="@3">SAS @3</option>
+        </select>
+        <textarea id="complaintText" placeholder="Describe your complaint"></textarea>
+        <button onclick="submitPublicComplaint()" style="background-color: #de3618; color: white; border: none;">Submit Complaint</button>
+        <p id="complaintError" style="color: red;"></p>
+    </div>
+
+    <div id="dashboard" class="container" style="display: none;">
+        <h1>Dashboard</h1>
+        <h2>Available Tasks</h2>
+        <ul id="taskList"></ul>
+        
+        <div id="adminPanel" style="display: none;">
+            <h2>Admin: Add Member ID</h2>
+            <input type="text" id="newMemberId" placeholder="Enter new member ID" />
+            <button onclick="addMember()">Add Member</button>
+            <p id="addError" style="color: red;"></p>
+            <h2>Reported Issues</h2>
+            <div id="issuesList"></div>
+            <h2>Public Complaints</h2>
+            <div id="complaintsList"></div>
+        </div>
+
+        <div id="chatPanel" style="display: none;">
+            <h2>Online Chat</h2>
+            <div id="chatMessages" class="chat-messages"></div>
+            <input type="text" id="chatInput" placeholder="Type a message" />
+            <input type="file" id="fileInput" accept="image/*,text/*,.pdf,.doc,.docx" style="margin: 5px;" />
+            <button onclick="sendMessage()">Send</button>
+        </div>
+
+        <button onclick="logout()" style="margin-top: 20px; background-color: #333; color: white;">Logout</button>
+
+        <div id="issueForm" style="display: none;">
+            <h2>Report Issue</h2>
+            <textarea id="issueText" placeholder="Describe the issue"></textarea>
+            <button onclick="submitIssue()">Submit</button>
+        </div>
+    </div>
+
+    <script>
+        const adminId = '9999';
+        const initialValidIds = ['1234', adminId];
+        let validIds = JSON.parse(localStorage.getItem('validIds')) || initialValidIds;
+        localStorage.setItem('validIds', JSON.stringify(validIds));
+
+        let publicComplaints = JSON.parse(localStorage.getItem('publicComplaints')) || [];
+
+        const tasks = [
+            { id: 1, name: 'Fix bug in module A1 ', accepted: false },
+            { id: 2, name: 'Update documentation', accepted: false },
+            { id: 3, name: 'Test new feature', accepted: false }
+        ];
+        let currentUser = null;
+        let isAdmin = false;
+        let chatMessages = JSON.parse(localStorage.getItem('chatMessages')) || [];
+        localStorage.setItem('chatMessages', JSON.stringify(chatMessages));
+        let currentTaskForIssue = null;
+        let issueReports = JSON.parse(localStorage.getItem('issueReports')) || [];
+        localStorage.setItem('issueReports', JSON.stringify(issueReports));
+
+        // 🌟 ฟังก์ชันใหม่สำหรับเปิด-ปิดฟอร์มหน้าแรกตามที่เลือกกดปุ่ม
+        function showForm(formId) {
+            if (formId === 'login') {
+                document.getElementById('login').style.display = 'block';
+                document.getElementById('publicComplaint').style.display = 'none';
+            } else if (formId === 'publicComplaint') {
+                document.getElementById('login').style.display = 'none';
+                document.getElementById('publicComplaint').style.display = 'block';
+            }
+        }
+
+        function login() {
+            const id = document.getElementById('userId').value.trim();
+            if (validIds.includes(id)) {
+                currentUser = id;
+                isAdmin = (id === adminId);
+                
+                // ซ่อนเมนูหน้าแรกทั้งหมดเมื่อเข้าไปในแดชบอร์ดแล้ว
+                document.getElementById('homeNavigation').style.display = 'none';
+                document.getElementById('login').style.display = 'none';
+                document.getElementById('publicComplaint').style.display = 'none';
+                
+                document.getElementById('dashboard').style.display = 'block';
+                if (isAdmin) {
+                    document.getElementById('adminPanel').style.display = 'block';
+                    loadIssues();
+                    loadComplaints();
+                }
+                document.getElementById('chatPanel').style.display = 'block';
+                loadChat();
+                loadTasks();
+            } else {
+                document.getElementById('loginError').textContent = 'Invalid ID';
+            }
+        }
+
+        function submitPublicComplaint() {
+            const dept = document.getElementById('departmentSelect').value;
+            const text = document.getElementById('complaintText').value.trim();
+            const errorP = document.getElementById('complaintError');
+
+            if (!text) {
+                errorP.textContent = 'Please enter your complaint message.';
+                return;
+            }
+
+            const newComplaint = {
+                department: dept,
+                message: text,
+                timestamp: new Date().toLocaleString()
+            };
+
+            publicComplaints.push(newComplaint);
+            localStorage.setItem('publicComplaints', JSON.stringify(publicComplaints));
+            
+            alert('Your complaint has been submitted successfully!');
+            document.getElementById('complaintText').value = '';
+            errorP.textContent = '';
+        }
+
+        function loadComplaints() {
+            const list = document.getElementById('complaintsList');
+            list.innerHTML = '';
+            if (publicComplaints.length === 0) {
+                list.innerHTML = '<p>No public complaints yet.</p>';
+                return;
+            }
+            publicComplaints.forEach(comp => {
+                const div = document.createElement('div');
+                div.className = 'task';
+                div.innerHTML = `
+                    <strong>Department:</strong> ${comp.department}<br>
+                    <strong>Complaint:</strong> ${comp.message}<br>
+                    <strong>Time:</strong> ${comp.timestamp}
+                `;
+                list.appendChild(div);
+            });
+        }
+
+        function loadTasks() {
+            const list = document.getElementById('taskList');
+            list.innerHTML = '';
+            tasks.forEach(task => {
+                const li = document.createElement('li');
+                li.className = 'task';
+                li.innerHTML = `
+                    ${task.name} 
+                    <button onclick="acceptTask(${task.id})" ${task.accepted ? 'disabled' : ''}>Accept</button>
+                    <button onclick="reportIssue(${task.id})">Report Issue</button>
+                `;
+                list.appendChild(li);
+            });
+        }
+
+        function acceptTask(taskId) {
+            const task = tasks.find(t => t.id === taskId);
+            if (task) {
+                task.accepted = true;
+                alert(`Task "${task.name}" accepted!`);
+                loadTasks();
+            }
+        }
+
+        function reportIssue(taskId) {
+            const task = tasks.find(t => t.id === taskId);
+            currentTaskForIssue = task;
+            document.getElementById('issueForm').style.display = 'block';
+            document.getElementById('issueText').value = '';
+        }
+
+        function submitIssue() {
+            const issueText = document.getElementById('issueText').value.trim();
+            if (issueText && currentTaskForIssue) {
+                const report = {
+                    taskId: currentTaskForIssue.id,
+                    taskName: currentTaskForIssue.name,
+                    user: currentUser,
+                    issue: issueText,
+                    timestamp: new Date().toLocaleString()
+                };
+                issueReports.push(report);
+                localStorage.setItem('issueReports', JSON.stringify(issueReports));
+                alert('Issue reported and sent to admin!');
+                document.getElementById('issueForm').style.display = 'none';
+                currentTaskForIssue = null;
+                if (isAdmin) loadIssues();
+            } else {
+                alert('Please describe the issue.');
+            }
+        }
+
+        function loadIssues() {
+            const list = document.getElementById('issuesList');
+            list.innerHTML = '';
+            if (issueReports.length === 0) {
+                list.innerHTML = '<p>No issues reported yet.</p>';
+                return;
+            }
+            issueReports.forEach(report => {
+                const div = document.createElement('div');
+                div.className = 'task';
+                div.innerHTML = `
+                    <strong>Task:</strong> ${report.taskName}<br>
+                    <strong>Reported by:</strong> ${report.user}<br>
+                    <strong>Issue:</strong> ${report.issue}<br>
+                    <strong>Time:</strong> ${report.timestamp}
+                `;
+                list.appendChild(div);
+            });
+        }
+
+        function addMember() {
+            if (!isAdmin) return;
+            const newId = document.getElementById('newMemberId').value.trim();
+            if (newId && !validIds.includes(newId)) {
+                validIds.push(newId);
+                localStorage.setItem('validIds', JSON.stringify(validIds));
+                alert(`New member ID "${newId}" added!`);
+                document.getElementById('newMemberId').value = '';
+                document.getElementById('addError').textContent = '';
+            } else {
+                document.getElementById('addError').textContent = 'Invalid or duplicate ID';
+            }
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const fileInput = document.getElementById('fileInput');
+            const message = input.value.trim();
+            const file = fileInput.files[0];
+            if (message || file) {
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        let attachment = null;
+                        if (file.type.startsWith('image/')) {
+                            attachment = { type: 'image', name: file.name, src: e.target.result };
+                        } else {
+                            attachment = { type: 'file', name: file.name };
+                        }
+                        const msg = { user: currentUser, text: message, attachment: attachment, timestamp: new Date().toLocaleTimeString() };
+                        chatMessages.push(msg);
+                        localStorage.setItem('chatMessages', JSON.stringify(chatMessages));
+                        input.value = '';
+                        fileInput.value = '';
+                        loadChat();
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    const msg = { user: currentUser, text: message, attachment: null, timestamp: new Date().toLocaleTimeString() };
+                    chatMessages.push(msg);
+                    localStorage.setItem('chatMessages', JSON.stringify(chatMessages));
+                    input.value = '';
+                    loadChat();
+                }
+            }
+        }
+
+        function loadChat() {
+            const messagesDiv = document.getElementById('chatMessages');
+            messagesDiv.innerHTML = '';
+            chatMessages.forEach(msg => {
+                const p = document.createElement('p');
+                let content = `${msg.timestamp} [${msg.user}]: ${msg.text}`;
+                if (msg.attachment) {
+                    if (msg.attachment.type === 'image') {
+                        content += `<br><img src="${msg.attachment.src}" alt="${msg.attachment.name}" style="max-width: 200px; max-height: 200px;">`;
+                    } else {
+                        content += `<br>Attachment: ${msg.attachment.name}`;
+                    }
+                }
+                p.innerHTML = content;
+                messagesDiv.appendChild(p);
+            });
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+
+        function logout() {
+            currentUser = null;
+            isAdmin = false;
+            document.getElementById('dashboard').style.display = 'none';
+            document.getElementById('adminPanel').style.display = 'none';
+            document.getElementById('chatPanel').style.display = 'none';
+            
+            // แสดงแถบควบคุมหน้าแรกและฟอร์มล็อกอินกลับมาเมื่อ Logout
+            document.getElementById('homeNavigation').style.display = 'block';
+            document.getElementById('login').style.display = 'block';
+            document.getElementById('publicComplaint').style.display = 'none';
+            
+            document.getElementById('userId').value = '';
+            document.getElementById('loginError').textContent = '';
+        }
+    </script>
+</body>
+</html>
