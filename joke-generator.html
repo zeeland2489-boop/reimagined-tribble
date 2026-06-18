@@ -2,433 +2,349 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Random Joke Generator</title>
+    <title>Work Entry System</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-        }
-
-        .container {
-            background: white;
-            border-radius: 15px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
-            padding: 40px;
-            max-width: 600px;
-            width: 100%;
-            animation: slideIn 0.5s ease-out;
-        }
-
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateY(-30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        h1 {
-            text-align: center;
-            color: #333;
-            margin-bottom: 10px;
-            font-size: 2.5em;
-        }
-
-        .subtitle {
-            text-align: center;
-            color: #666;
-            margin-bottom: 30px;
-            font-size: 1.1em;
-        }
-
-        .joke-display {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 10px;
-            padding: 30px;
-            margin-bottom: 30px;
-            min-height: 150px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            animation: fadeIn 0.5s ease-out;
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-            }
-            to {
-                opacity: 1;
-            }
-        }
-
-        .joke-text {
-            color: white;
-            font-size: 1.3em;
-            text-align: center;
-            line-height: 1.6;
-            font-weight: 500;
-        }
-
-        .joke-setup {
-            margin-bottom: 15px;
-            font-style: italic;
-        }
-
-        .punchline {
-            margin-top: 20px;
-            padding-top: 20px;
-            border-top: 2px solid rgba(255, 255, 255, 0.3);
-            font-weight: bold;
-        }
-
-        .loading {
-            text-align: center;
-            color: white;
-        }
-
-        .spinner {
-            border: 4px solid rgba(255, 255, 255, 0.3);
-            border-top: 4px solid white;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 15px;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .controls {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-        }
-
-        button {
-            flex: 1;
-            min-width: 150px;
-            padding: 12px 20px;
-            font-size: 1em;
-            font-weight: 600;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .btn-get-joke {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
-
-        .btn-get-joke:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
-        }
-
-        .btn-get-joke:active {
-            transform: translateY(0);
-        }
-
-        .btn-copy {
-            background: #f0f0f0;
-            color: #333;
-            border: 2px solid #ddd;
-        }
-
-        .btn-copy:hover {
-            background: #e0e0e0;
-            border-color: #999;
-        }
-
-        .btn-copy:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        .category-filter {
-            margin-bottom: 20px;
-        }
-
-        .category-filter label {
-            display: block;
-            margin-bottom: 10px;
-            color: #333;
-            font-weight: 600;
-        }
-
-        .category-buttons {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-
-        .category-btn {
-            padding: 8px 15px;
-            border: 2px solid #ddd;
-            background: white;
-            border-radius: 20px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-size: 0.95em;
-        }
-
-        .category-btn:hover {
-            border-color: #667eea;
-            color: #667eea;
-        }
-
-        .category-btn.active {
-            background: #667eea;
-            color: white;
-            border-color: #667eea;
-        }
-
-        .error-message {
-            background: #fee;
-            color: #c33;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            display: none;
-            border-left: 4px solid #c33;
-        }
-
-        .success-message {
-            background: #efe;
-            color: #3a3;
-            padding: 10px 15px;
-            border-radius: 8px;
-            margin-bottom: 15px;
-            display: none;
-            border-left: 4px solid #3a3;
-            text-align: center;
-        }
-
-        .stats {
-            background: #f5f5f5;
-            padding: 15px;
-            border-radius: 8px;
-            text-align: center;
-            color: #666;
-            font-size: 0.95em;
-        }
-
-        .stats span {
-            font-weight: 600;
-            color: #667eea;
-        }
-
-        @media (max-width: 500px) {
-            .container {
-                padding: 25px;
-            }
-
-            h1 {
-                font-size: 2em;
-            }
-
-            .joke-text {
-                font-size: 1.1em;
-            }
-
-            .controls {
-                flex-direction: column;
-            }
-
-            button {
-                width: 100%;
-            }
-        }
+body {
+    font-family: Arial, sans-serif;
+    margin: 20px;
+    background-color: white;
+    color: black;
+    transition: background-color 0.3s, color 0.3s;
+}
+.container {
+    max-width: 600px;
+    margin: auto;
+}
+.title {
+    color: #5C6AC4;
+}
+.task {
+    margin: 10px 0;
+    padding: 10px;
+    border: 1px solid #ccc;
+}
+button {
+    margin: 5px;
+    padding: 10px;
+}
+#adminPanel {
+    border-top: 1px solid #ccc;
+    padding-top: 10px;
+    margin-top: 20px;
+}
+#chatPanel {
+    border-top: 1px solid #ccc;
+    padding-top: 10px;
+    margin-top: 20px;
+}
+.chat-messages {
+    height: 200px;
+    overflow-y: scroll;
+    border: 1px solid #ccc;
+    padding: 10px;
+    margin-bottom: 10px;
+}
+#publicComplaint {
+    margin-top: 20px;
+    border: 1px solid #ccc;
+    padding: 10px;
+}
     </style>
 </head>
 <body>
-
-    <div class="container">
-        <h1>😂 Joke Generator</h1>
-        <p class="subtitle">Get a random laugh!</p>
-
-        <div class="error-message" id="errorMessage"></div>
-        <div class="success-message" id="successMessage">Copied to clipboard!</div>
-
-        <div class="category-filter">
-            <label>Select Category (Optional):</label>
-            <div class="category-buttons">
-                <button class="category-btn active" data-category="any">Any</button>
-                <button class="category-btn" data-category="general">General</button>
-                <button class="category-btn" data-category="programming">Programming</button>
-                <button class="category-btn" data-category="knock-knock">Knock-Knock</button>
-                <button class="category-btn" data-category="dad">Dad Jokes</button>
-            </div>
+    <div id="login" class="container">
+        <h1>Login</h1>
+        <input type="text" id="userId" placeholder="Enter ID (e.g., 1234)" />
+        <button onclick="login()">Login</button>
+        <p id="loginError" style="color: red;"></p>
+    </div>
+    <div id="publicComplaint" class="container">
+        <h1>Public Complaint</h1>
+        <p>For general public: Submit a complaint to a department.</p>
+        <select id="departmentSelect">
+            <option value="@1">Department @1</option>
+            <option value="@2">Department @2</option>
+            <option value="@3">Department @3</option>
+        </select>
+        <textarea id="complaintText" placeholder="Describe your complaint"></textarea>
+        <button onclick="submitPublicComplaint()">Submit Complaint</button>
+        <p id="complaintError" style="color: red;"></p>
+    </div>
+    <div id="dashboard" class="container" style="display: none;">
+        <h1>Dashboard</h1>
+        <button onclick="changeTheme()">Change Theme</button>
+        <h2>Available Tasks</h2>
+        <ul id="taskList"></ul>
+        <div id="adminPanel" style="display: none;">
+            <h2>Admin: Add Member ID</h2>
+            <input type="text" id="newMemberId" placeholder="Enter new member ID" />
+            <button onclick="addMember()">Add Member</button>
+            <p id="addError" style="color: red;"></p>
+            <h2>Reported Issues</h2>
+            <div id="issuesList"></div>
+            <h2>Public Complaints</h2>
+            <div id="complaintsList"></div>
         </div>
-
-        <div class="joke-display" id="jokeDisplay">
-            <div class="loading">
-                <div class="spinner"></div>
-                <p>Loading a joke for you...</p>
-            </div>
+        <div id="chatPanel" style="display: none;">
+            <h2>Online Chat</h2>
+            <div id="chatMessages" class="chat-messages"></div>
+            <input type="text" id="chatInput" placeholder="Type a message" />
+            <input type="file" id="fileInput" accept="image/*,text/*,.pdf,.doc,.docx" style="margin: 5px;" />
+            <button onclick="sendMessage()">Send</button>
         </div>
-
-        <div class="controls">
-            <button class="btn-get-joke" onclick="getJoke()">Get New Joke</button>
-            <button class="btn-copy" id="copyBtn" onclick="copyJoke()" disabled>Copy Joke</button>
-        </div>
-
-        <div class="stats">
-            Jokes loaded: <span id="jokeCount">0</span>
+        <button onclick="logout()">Logout</button>
+        <div id="issueForm" style="display: none;">
+            <h2>Report Issue</h2>
+            <textarea id="issueText" placeholder="Describe the issue"></textarea>
+            <button onclick="submitIssue()">Submit</button>
         </div>
     </div>
-
     <script>
-        let currentJoke = null;
-        let selectedCategory = 'any';
-        let jokeCount = 0;
+// Static data for demo
+const adminId = '9999';
+const initialValidIds = ['1234', adminId];
+let validIds = JSON.parse(localStorage.getItem('validIds')) || initialValidIds;
+localStorage.setItem('validIds', JSON.stringify(validIds));
 
-        // Category button event listeners
-        document.querySelectorAll('.category-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
-                this.classList.add('active');
-                selectedCategory = this.dataset.category;
-            });
-        });
+const tasks = [
+    { id: 1, name: 'Fix bug in module A', accepted: false },
+    { id: 2, name: 'Update documentation', accepted: false },
+    { id: 3, name: 'Test new feature', accepted: false }
+];
+let currentUser = null;
+let isAdmin = false;
+let chatMessages = JSON.parse(localStorage.getItem('chatMessages')) || [];
+localStorage.setItem('chatMessages', JSON.stringify(chatMessages));
+let currentTaskForIssue = null;
+let issueReports = JSON.parse(localStorage.getItem('issueReports')) || [];
+localStorage.setItem('issueReports', JSON.stringify(issueReports));
+let publicComplaints = JSON.parse(localStorage.getItem('publicComplaints')) || [];
+localStorage.setItem('publicComplaints', JSON.stringify(publicComplaints));
+let isDarkTheme = JSON.parse(localStorage.getItem('isDarkTheme')) || false;
+if (isDarkTheme) {
+    document.body.style.backgroundColor = '#333';
+    document.body.style.color = 'white';
+}
 
-        async function getJoke() {
-            const jokeDisplay = document.getElementById('jokeDisplay');
-            const errorMessage = document.getElementById('errorMessage');
-            const copyBtn = document.getElementById('copyBtn');
+function login() {
+    const id = document.getElementById('userId').value;
+    if (validIds.includes(id)) {
+        currentUser = id;
+        isAdmin = (id === adminId);
+        document.getElementById('login').style.display = 'none';
+        document.getElementById('dashboard').style.display = 'block';
+        if (isAdmin) {
+            document.getElementById('adminPanel').style.display = 'block';
+            loadIssues();
+            loadComplaints();
+        }
+        // Show chat for all users
+        document.getElementById('chatPanel').style.display = 'block';
+        loadChat();
+        loadTasks();
+    } else {
+        document.getElementById('loginError').textContent = 'Invalid ID';
+    }
+}
 
-            // Show loading state
-            jokeDisplay.innerHTML = `
-                <div class="loading">
-                    <div class="spinner"></div>
-                    <p>Loading a joke for you...</p>
-                </div>
-            `;
-            errorMessage.style.display = 'none';
-            copyBtn.disabled = true;
+function changeTheme() {
+    isDarkTheme = !isDarkTheme;
+    if (isDarkTheme) {
+        document.body.style.backgroundColor = '#333';
+        document.body.style.color = 'white';
+    } else {
+        document.body.style.backgroundColor = 'white';
+        document.body.style.color = 'black';
+    }
+    localStorage.setItem('isDarkTheme', JSON.stringify(isDarkTheme));
+}
 
-            try {
-                let url = 'https://v2.jokeapi.dev/joke/';
+function loadTasks() {
+    const list = document.getElementById('taskList');
+    list.innerHTML = '';
+    tasks.forEach(task => {
+        const li = document.createElement('li');
+        li.className = 'task';
+        li.innerHTML = `
+            ${task.name} 
+            <button onclick="acceptTask(${task.id})" ${task.accepted ? 'disabled' : ''}>Accept</button>
+            <button onclick="reportIssue(${task.id})">Report Issue</button>
+        `;
+        list.appendChild(li);
+    });
+}
 
-                // Build category URL
-                if (selectedCategory === 'any') {
-                    url += 'Any';
-                } else if (selectedCategory === 'programming') {
-                    url += 'Programming';
-                } else if (selectedCategory === 'knock-knock') {
-                    url += 'Knock-Knock';
+function acceptTask(taskId) {
+    const task = tasks.find(t => t.id === taskId);
+    if (task) {
+        task.accepted = true;
+        alert(`Task "${task.name}" accepted!`);
+        loadTasks();
+    }
+}
+
+function reportIssue(taskId) {
+    const task = tasks.find(t => t.id === taskId);
+    currentTaskForIssue = task;
+    document.getElementById('issueForm').style.display = 'block';
+    document.getElementById('issueText').value = '';
+}
+
+function submitIssue() {
+    const issueText = document.getElementById('issueText').value.trim();
+    if (issueText && currentTaskForIssue) {
+        const report = {
+            taskId: currentTaskForIssue.id,
+            taskName: currentTaskForIssue.name,
+            user: currentUser,
+            issue: issueText,
+            timestamp: new Date().toLocaleString()
+        };
+        issueReports.push(report);
+        localStorage.setItem('issueReports', JSON.stringify(issueReports));
+        alert('Issue reported and sent to admin!');
+        document.getElementById('issueForm').style.display = 'none';
+        currentTaskForIssue = null;
+    } else {
+        alert('Please describe the issue.');
+    }
+}
+
+function loadIssues() {
+    const list = document.getElementById('issuesList');
+    list.innerHTML = '';
+    if (issueReports.length === 0) {
+        list.innerHTML = '<p>No issues reported yet.</p>';
+        return;
+    }
+    issueReports.forEach(report => {
+        const div = document.createElement('div');
+        div.className = 'task';
+        div.innerHTML = `
+            <strong>Task:</strong> ${report.taskName}<br>
+            <strong>Reported by:</strong> ${report.user}<br>
+            <strong>Issue:</strong> ${report.issue}<br>
+            <strong>Time:</strong> ${report.timestamp}
+        `;
+        list.appendChild(div);
+    });
+}
+
+function submitPublicComplaint() {
+    const department = document.getElementById('departmentSelect').value;
+    const complaintText = document.getElementById('complaintText').value.trim();
+    if (complaintText) {
+        const complaint = {
+            department: department,
+            complaint: complaintText,
+            timestamp: new Date().toLocaleString()
+        };
+        publicComplaints.push(complaint);
+        localStorage.setItem('publicComplaints', JSON.stringify(publicComplaints));
+        alert('Complaint submitted successfully!');
+        document.getElementById('complaintText').value = '';
+        document.getElementById('complaintError').textContent = '';
+    } else {
+        document.getElementById('complaintError').textContent = 'Please describe your complaint.';
+    }
+}
+
+function loadComplaints() {
+    const list = document.getElementById('complaintsList');
+    list.innerHTML = '';
+    if (publicComplaints.length === 0) {
+        list.innerHTML = '<p>No public complaints yet.</p>';
+        return;
+    }
+    publicComplaints.forEach(complaint => {
+        const div = document.createElement('div');
+        div.className = 'task';
+        div.innerHTML = `
+            <strong>Department:</strong> ${complaint.department}<br>
+            <strong>Complaint:</strong> ${complaint.complaint}<br>
+            <strong>Time:</strong> ${complaint.timestamp}
+        `;
+        list.appendChild(div);
+    });
+}
+
+function addMember() {
+    if (!isAdmin) return;
+    const newId = document.getElementById('newMemberId').value.trim();
+    if (newId && !validIds.includes(newId)) {
+        validIds.push(newId);
+        localStorage.setItem('validIds', JSON.stringify(validIds));
+        alert(`New member ID "${newId}" added!`);
+        document.getElementById('newMemberId').value = '';
+        document.getElementById('addError').textContent = '';
+    } else {
+        document.getElementById('addError').textContent = 'Invalid or duplicate ID';
+    }
+}
+
+function sendMessage() {
+    // Allow all users to send messages
+    const input = document.getElementById('chatInput');
+    const fileInput = document.getElementById('fileInput');
+    const message = input.value.trim();
+    const file = fileInput.files[0];
+    if (message || file) {
+        let attachment = null;
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                if (file.type.startsWith('image/')) {
+                    attachment = { type: 'image', name: file.name, src: e.target.result };
                 } else {
-                    url += 'General';
+                    attachment = { type: 'file', name: file.name };
                 }
-
-                // Add parameters
-                url += '?type=single,twopart&format=json';
-
-                const response = await fetch(url);
-
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-
-                const data = await response.json();
-
-                if (data.error) {
-                    throw new Error('No jokes found for this category');
-                }
-
-                currentJoke = data;
-                jokeCount++;
-                document.getElementById('jokeCount').textContent = jokeCount;
-
-                displayJoke(data);
-                copyBtn.disabled = false;
-
-            } catch (error) {
-                console.error('Error fetching joke:', error);
-                errorMessage.textContent = `Error: ${error.message}. Please try again.`;
-                errorMessage.style.display = 'block';
-                jokeDisplay.innerHTML = `
-                    <div class="joke-text">
-                        <p>Oops! Could not load a joke. Please try again.</p>
-                    </div>
-                `;
-                currentJoke = null;
-                copyBtn.disabled = true;
-            }
+                const msg = { user: currentUser, text: message, attachment: attachment, timestamp: new Date().toLocaleTimeString() };
+                chatMessages.push(msg);
+                localStorage.setItem('chatMessages', JSON.stringify(chatMessages));
+                input.value = '';
+                fileInput.value = '';
+                loadChat();
+            };
+            reader.readAsDataURL(file);
+        } else {
+            const msg = { user: currentUser, text: message, attachment: null, timestamp: new Date().toLocaleTimeString() };
+            chatMessages.push(msg);
+            localStorage.setItem('chatMessages', JSON.stringify(chatMessages));
+            input.value = '';
+            loadChat();
         }
+    }
+}
 
-        function displayJoke(joke) {
-            const jokeDisplay = document.getElementById('jokeDisplay');
-            let jokeHTML = '<div class="joke-text">';
-
-            if (joke.type === 'twopart') {
-                jokeHTML += `
-                    <div class="joke-setup">${escapeHtml(joke.setup)}</div>
-                    <div class="punchline">${escapeHtml(joke.delivery)}</div>
-                `;
+function loadChat() {
+    const messagesDiv = document.getElementById('chatMessages');
+    messagesDiv.innerHTML = '';
+    chatMessages.forEach(msg => {
+        const p = document.createElement('p');
+        let content = `${msg.timestamp} [${msg.user}]: ${msg.text}`;
+        if (msg.attachment) {
+            if (msg.attachment.type === 'image') {
+                content += `<br><img src="${msg.attachment.src}" alt="${msg.attachment.name}" style="max-width: 200px; max-height: 200px;">`;
             } else {
-                jokeHTML += `<div>${escapeHtml(joke.joke)}</div>`;
+                content += `<br>Attachment: ${msg.attachment.name}`;
             }
-
-            jokeHTML += '</div>';
-            jokeDisplay.innerHTML = jokeHTML;
         }
+        p.innerHTML = content;
+        messagesDiv.appendChild(p);
+    });
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+}
 
-        function copyJoke() {
-            if (!currentJoke) return;
-
-            let jokeText = '';
-            if (currentJoke.type === 'twopart') {
-                jokeText = `${currentJoke.setup}\n\n${currentJoke.delivery}`;
-            } else {
-                jokeText = currentJoke.joke;
-            }
-
-            navigator.clipboard.writeText(jokeText).then(() => {
-                const successMessage = document.getElementById('successMessage');
-                successMessage.style.display = 'block';
-                setTimeout(() => {
-                    successMessage.style.display = 'none';
-                }, 2000);
-            }).catch(err => {
-                console.error('Failed to copy:', err);
-                alert('Failed to copy joke to clipboard');
-            });
-        }
-
-        function escapeHtml(text) {
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
-        }
-
-        // Load first joke on page load
-        window.addEventListener('load', getJoke);
+function logout() {
+    currentUser = null;
+    isAdmin = false;
+    document.getElementById('dashboard').style.display = 'none';
+    document.getElementById('adminPanel').style.display = 'none';
+    document.getElementById('chatPanel').style.display = 'none';
+    document.getElementById('login').style.display = 'block';
+    document.getElementById('userId').value = '';
+    document.getElementById('loginError').textContent = '';
+}
     </script>
-
 </body>
 </html>
